@@ -13,12 +13,18 @@ RUN apk add --update --no-cache sudo bash shadow ca-certificates git openssl tzd
 RUN addgroup -S ${GITLAB_RUNNER_USER} && adduser -D -S -G ${GITLAB_RUNNER_USER} -h ${GITLAB_RUNNER_HOME_DIR} ${GITLAB_RUNNER_USER}
 RUN sudo -HEu ${GITLAB_RUNNER_USER} ln -sf ${GITLAB_RUNNER_DATA_DIR}/.ssh ${GITLAB_RUNNER_HOME_DIR}/.ssh
 
-RUN wget -O /usr/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64 && \
+ARG GITLAB_RUNNER_VERSION=11.4.0
+RUN wget https://gitlab-runner-downloads.s3.amazonaws.com/v${GITLAB_RUNNER_VERSION}/binaries/gitlab-runner-linux-amd64 -O /usr/bin/gitlab-runner && \
     chmod +x /usr/bin/gitlab-runner && \
     ln -s /usr/bin/gitlab-runner /usr/bin/gitlab-ci-multi-runner && \
     gitlab-runner --version
 
-ENV DUMB_INIT_VERSION=1.2.2
+ARG DOCKER_MACHINE_VERSION=0.15.0
+RUN wget https://github.com/docker/machine/releases/download/v${DOCKER_MACHINE_VERSION}/docker-machine-Linux-x86_64 -O /usr/bin/docker-machine && \
+    chmod +x /usr/bin/docker-machine && \
+    docker-machine --version
+
+ARG DUMB_INIT_VERSION=1.2.2
 RUN wget -q https://github.com/Yelp/dumb-init/releases/download/v${DUMB_INIT_VERSION}/dumb-init_${DUMB_INIT_VERSION}_amd64 -O /usr/bin/dumb-init && \
     chmod +x /usr/bin/dumb-init && \
     dumb-init --version

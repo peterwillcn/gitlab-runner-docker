@@ -48,17 +48,18 @@ grant_access_to_docker_socket() {
 }
 
 configure_ci_runner() {
-  #if [[ ! -e ${GITLAB_RUNNER_DATA_DIR}/config.toml ]]; then
+  if [[ ! -e ${GITLAB_RUNNER_DATA_DIR}/config-${RUNNER_DESCRIPTION}.toml ]]; then
     if [[ -n ${CI_SERVER_URL} && -n ${RUNNER_TOKEN} && -n ${RUNNER_DESCRIPTION} && -n ${RUNNER_EXECUTOR} ]]; then
       sudo -HEu ${GITLAB_RUNNER_USER} \
-        gitlab-ci-multi-runner register --config ${GITLAB_RUNNER_DATA_DIR}/config.toml \
+        gitlab-ci-multi-runner register --config ${GITLAB_RUNNER_DATA_DIR}/config-${RUNNER_DESCRIPTION}.toml \
           -n -u "${CI_SERVER_URL}" -r "${RUNNER_TOKEN}" --name "${RUNNER_DESCRIPTION}" --executor "${RUNNER_EXECUTOR}" \
-          --docker-tlsverify "${TLS_VERIFY}" --run-untagged "${RUN_UNTAGGED}" --docker-image "${DOCKER_IMAGE}"
-    #else
-    #  sudo -HEu ${GITLAB_RUNNER_USER} \
-    #    gitlab-ci-multi-runner register --config ${GITLAB_RUNNER_DATA_DIR}/config.toml
+          --docker-tlsverify "${TLS_VERIFY}" --run-untagged "${RUN_UNTAGGED}" --docker-image "${DOCKER_IMAGE}" \
+          --builds-dir "${BUILDS_DIR}"
+    else
+      sudo -HEu ${GITLAB_RUNNER_USER} \
+      gitlab-ci-multi-runner register --config ${GITLAB_RUNNER_DATA_DIR}/config-${RUNNER_DESCRIPTION}.toml
     fi
-  #fi
+  fi
 }
 
 # allow arguments to be passed to gitlab-ci-multi-runner
@@ -82,7 +83,7 @@ if [[ -z ${1} ]]; then
     $(which gitlab-ci-multi-runner) run \
       --user ${GITLAB_RUNNER_USER} \
       --working-directory ${GITLAB_RUNNER_DATA_DIR} \
-      --config ${GITLAB_RUNNER_DATA_DIR}/config.toml ${EXTRA_ARGS}
+      --config ${GITLAB_RUNNER_DATA_DIR}/config-${RUNNER_DESCRIPTION}.toml ${EXTRA_ARGS}
 else
   exec "$@"
 fi
