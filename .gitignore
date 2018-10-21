@@ -1,0 +1,4 @@
+bin
+*.img
+docker-compose
+gitlab-runner-linux-amd64
